@@ -1,0 +1,6 @@
+name: pre-commit
+on:
+  push:
+jobs:
+  pre-commit:
+    uses: ./.github/workflows/pre-commit.yaml

@@ -1,0 +1,13 @@
+name: release-label-validation
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+jobs:
+  release-label-validation:
+    uses: ./.github/workflows/release-label-validation.yaml

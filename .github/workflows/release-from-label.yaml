@@ -1,0 +1,69 @@
+name: Release on merged PR
+on:
+  workflow_call:
+    inputs:
+      on_base_ref:
+        required: false
+        type: string
+        default: main
+jobs:
+  release:
+    name: Run release
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.base_ref == inputs.on_base_ref &&
+      github.event.action == 'closed' &&
+      (
+        contains(github.event.pull_request.labels.*.name, 'major') ||
+        contains(github.event.pull_request.labels.*.name, 'minor') ||
+        contains(github.event.pull_request.labels.*.name, 'patch')
+      ) &&
+      !contains(github.event.pull_request.labels.*.name, 'chore')
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: install semver
+        uses: asdf-vm/actions/install@v1
+        with:
+          tool_versions: |
+            semver 3.3.0
+      - name: Determine release type
+        id: release_type
+        run: |
+          if [[ ${{ contains(github.event.pull_request.labels.*.name, 'major') }} == "true" ]]; then
+            echo "::set-output name=release_type::major"
+          elif [[ ${{ contains(github.event.pull_request.labels.*.name, 'minor') }} == "true" ]]; then
+            echo "::set-output name=release_type::minor"
+          elif [[ ${{ contains(github.event.pull_request.labels.*.name, 'patch') }} == "true" ]]; then
+            echo "::set-output name=release_type::patch"
+          else
+            echo "### :x: Failed to determine release type from PR labels" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+      - name: Determine next version
+        id: next_version
+        run: |
+          maybe_tag=$(git tag | sort -V | tail -1)
+          tag=${maybe_tag:-v0.0.0}
+          version=${tag:1}
+          echo "Current version is $version"
+
+          release_type=${{ steps.release_type.outputs.release_type }}
+          echo "Performing $release_type release!"
+
+          next_version=$(semver bump $release_type $version)
+          echo "Next version is $next_version"
+          echo "::set-output name=version::$next_version"
+      - name: Create release
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'pre-release') }}
+        run: |
+          GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh release create "v${{ steps.next_version.outputs.version }}" --generate-notes
+          echo "#### :rocket: Released version v${{ steps.next_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+      - name: Create pre-release
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'pre-release') }}
+        run: |
+          GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh release create "v${{ steps.next_version.outputs.version }}" --generate-notes --prerelease
+          echo "### :rocket: Pre-released version v${{ steps.next_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY

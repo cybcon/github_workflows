@@ -1,0 +1,54 @@
+name: pre-commit
+on:
+  workflow_call:
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Get hooks
+        id: hooks
+        run: echo "::set-output name=hooks::$(yq e '[.repos[].hooks[].id] | @json' .pre-commit-config.yaml)"
+    outputs:
+      hooks: ${{ steps.hooks.outputs.hooks }}
+  hook:
+    name: Run hook
+    runs-on: ubuntu-20.04
+    needs: setup
+    strategy:
+      matrix:
+        hook: ${{ fromJSON(needs.setup.outputs.hooks) }}
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Cache asdf
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.asdf
+          key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
+      - name: Install
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@v1.1.0
+        with:
+          # Normally, this action would just install the versions of the .tool-versions file in the root directory of the repository.
+          # As we also have .tool-versions files in subdirectories, pre-commit hooks would fail if versions in these files differ from
+          # the ones specified in the .tool-versions file in the root directory of this repository.
+          before_install: find . -name ".tool-versions" -exec bash -c 'while read line; do asdf install ${line}; done < ${0}' {} \;
+      - name: Run ${{ matrix.hook }} hook
+        # The asdf setup is required when restoring from cache
+        run: |
+          . /home/runner/.asdf/asdf.sh
+           pre-commit run -a ${{ matrix.hook }}
+      - name: Add summary on success
+        if: ${{ success() }}
+        run: |
+          echo "### :white_check_mark: ${{ matrix.hook }} succeeded" >> $GITHUB_STEP_SUMMARY
+      - name: Add summary on failure
+        if: ${{ failure() }}
+        run: |
+          echo "### :x: ${{ matrix.hook }} failed" >> $GITHUB_STEP_SUMMARY
+          echo -e "\`\`\`diff\n$(git diff)\n\`\`\`" >> $GITHUB_STEP_SUMMARY
