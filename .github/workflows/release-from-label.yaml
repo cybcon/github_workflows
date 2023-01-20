@@ -34,11 +34,11 @@ jobs:
         id: release_type
         run: |
           if [[ ${{ contains(github.event.pull_request.labels.*.name, 'major') }} == "true" ]]; then
-            echo "::set-output name=release_type::major"
+            echo "release_type=major" >> $GITHUB_OUTPUT
           elif [[ ${{ contains(github.event.pull_request.labels.*.name, 'minor') }} == "true" ]]; then
-            echo "::set-output name=release_type::minor"
+            echo "release_type=minor" >> $GITHUB_OUTPUT
           elif [[ ${{ contains(github.event.pull_request.labels.*.name, 'patch') }} == "true" ]]; then
-            echo "::set-output name=release_type::patch"
+            echo "release_type=patch" >> $GITHUB_OUTPUT
           else
             echo "### :x: Failed to determine release type from PR labels" >> $GITHUB_STEP_SUMMARY
             exit 1
@@ -56,7 +56,7 @@ jobs:
 
           next_version=$(semver bump $release_type $version)
           echo "Next version is $next_version"
-          echo "::set-output name=version::$next_version"
+          echo "version=$next_version" >> $GITHUB_OUTPUT
       - name: Create release
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'pre-release') }}
         run: |

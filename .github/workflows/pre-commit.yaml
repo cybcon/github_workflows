@@ -10,7 +10,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Get hooks
         id: hooks
-        run: echo "::set-output name=hooks::$(yq e '[.repos[].hooks[].id] | @json' .pre-commit-config.yaml)"
+        run: echo "hooks=$(yq e '[.repos[].hooks[].id] | @json' .pre-commit-config.yaml)" >> $GITHUB_OUTPUT
     outputs:
       hooks: ${{ steps.hooks.outputs.hooks }}
   hook:
