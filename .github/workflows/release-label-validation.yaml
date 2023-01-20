@@ -43,7 +43,7 @@ jobs:
           if GITHUB_OUTPUT:
             with open(GITHUB_OUTPUT, 'a') as github_output:
               github_output.write('labels_are_valid={labels_are_valid}\n'.format(labels_are_valid = labels_are_valid))
-              github_output.write('release_labels_count::{release_labels_count}\n'.format(release_labels_count = release_labels_count)
+              github_output.write('release_labels_count::{release_labels_count}\n'.format(release_labels_count = release_labels_count))
       - name: fail on empty labels
         if: ${{ steps.determine_release_labels.outputs.labels_are_valid != 'True' && steps.determine_release_labels.outputs.release_labels_count == 0 }}
         run: |
