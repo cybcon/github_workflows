@@ -17,7 +17,7 @@ on:
   push:
 jobs:
   pre-commit:
-    uses: cybcon/github_workflows/.github/workflows/pre-commit.yaml@v2.0.0
+    uses: cybcon/github_workflows/.github/workflows/pre-commit.yaml@v1.0.0
 ```
 
 ## release
@@ -47,7 +47,7 @@ on:
       - closed
 jobs:
   release:
-    uses: cybcon/github_workflows/.github/workflows/release-from-label.yaml@v2.0.0
+    uses: cybcon/github_workflows/.github/workflows/release-from-label.yaml@v1.0.0
 ```
 
 ```yaml
@@ -63,5 +63,5 @@ on:
       - unlabeled
 jobs:
   release-label-validation:
-    uses: cybcon/github_workflows/.github/workflows/release-label-validation.yaml@v2.0.0
+    uses: cybcon/github_workflows/.github/workflows/release-label-validation.yaml@v1.0.0
 ```
