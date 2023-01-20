@@ -27,6 +27,7 @@ jobs:
         id: determine_release_labels
         shell: python
         run: |
+          import os
           import json
 
           allowed_release_labels = ['major', 'minor', 'patch']
@@ -38,8 +39,11 @@ jobs:
 
           labels_are_valid = release_labels_count == 1 or (release_labels_count == 0 and is_chore)
 
-          print(f"::set-output name=labels_are_valid::{labels_are_valid}")
-          print(f"::set-output name=release_labels_count::{release_labels_count}")
+          GITHUB_OUTPUT = os.getenv('GITHUB_OUTPUT')
+          if GITHUB_OUTPUT:
+            with open(GITHUB_OUTPUT, 'a') as github_output:
+              github_output.write('labels_are_valid={labels_are_valid}\n'.format(labels_are_valid = labels_are_valid))
+              github_output.write('release_labels_count={release_labels_count}\n'.format(release_labels_count = release_labels_count))
       - name: fail on empty labels
         if: ${{ steps.determine_release_labels.outputs.labels_are_valid != 'True' && steps.determine_release_labels.outputs.release_labels_count == 0 }}
         run: |
