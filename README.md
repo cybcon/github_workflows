@@ -7,7 +7,7 @@ This repo contains reusable GitHub Action workflows and configuration.
 The [pre-commit](./github/workflows/pre-commit.yaml) workflow creates matrix jobs for every pre-commit hook.
 The matrix jobs fail if the hook fails and/or if there is a diff after running the hook.
 
-This action requires a `.pre-commit-config.yaml` file that contains the hooks as well as a `.tools-versions` file that contains (at least) the version of pre-commit to be installed.
+This action requires a `.pre-commit-config.yaml` file that contains the hooks as well as a `.tool-versions` file that contains (at least) the version of pre-commit to be installed.
 
 The pre-commit workflow can be integrated using the following workflow file:
 
