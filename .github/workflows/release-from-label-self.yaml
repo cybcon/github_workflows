@@ -1,0 +1,8 @@
+name: release
+on:
+  pull_request:
+    types:
+      - closed
+jobs:
+  release:
+    uses: ./.github/workflows/release-from-label.yaml

@@ -1,0 +1,56 @@
+name: Validate release labels on PR
+on:
+  workflow_call:
+    inputs:
+      on_base_ref:
+        required: false
+        type: string
+        default: main
+
+jobs:
+  validate_release_labels:
+    name: Run validation
+    runs-on: ubuntu-latest
+    # This workflow does not work with the Renovate Bot, so it's disabled for those branches
+    # It prevents the automerge because the workflow is run for the branch (not PR) and fails
+    # This should not be an issue because the Renovate Bot automatically adds the labels
+    if: |
+      github.event_name == 'pull_request' &&
+      github.base_ref == inputs.on_base_ref &&
+      contains(fromJSON('["opened", "edited", "synchronize", "reopened", "labeled", "unlabeled"]'), github.event.action) &&
+      !startsWith(github.head_ref, 'renovate/')
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: determine labels
+        id: determine_release_labels
+        shell: python
+        run: |
+          import json
+
+          allowed_release_labels = ['major', 'minor', 'patch']
+          pr_labels = json.loads("""${{ toJSON(github.event.pull_request.labels.*.name) }}""")
+
+          is_chore = 'chore' in pr_labels
+          release_labels_on_pr = list(filter(lambda label: label in allowed_release_labels, pr_labels))
+          release_labels_count = len(release_labels_on_pr)
+
+          labels_are_valid = release_labels_count == 1 or (release_labels_count == 0 and is_chore)
+
+          print(f"::set-output name=labels_are_valid::{labels_are_valid}")
+          print(f"::set-output name=release_labels_count::{release_labels_count}")
+      - name: fail on empty labels
+        if: ${{ steps.determine_release_labels.outputs.labels_are_valid != 'True' && steps.determine_release_labels.outputs.release_labels_count == 0 }}
+        run: |
+          echo "### :x: a release label (major, minor, patch or chore) must be set" >> $GITHUB_STEP_SUMMARY
+          exit 1
+      - name: fail on multiple labels
+        if: ${{ steps.determine_release_labels.outputs.labels_are_valid != 'True' && steps.determine_release_labels.outputs.release_labels_count > 1 }}
+        run: |
+          echo "### :x: pr must either be marked as chore or contain exactly one release label (major, minor, patch) " >> $GITHUB_STEP_SUMMARY
+          exit 1
+      - name: report correct label
+        if: steps.determine_release_labels.outputs.labels_are_valid
+        run: |
+          echo "### :white_check_mark: pr is marked with valid label" >> $GITHUB_STEP_SUMMARY
