@@ -26,7 +26,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: install semver
-        uses: asdf-vm/actions/install@v1
+        uses: asdf-vm/actions/install@v1.1.0
         with:
           tool_versions: |
             semver 3.3.0
