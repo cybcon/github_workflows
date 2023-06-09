@@ -6,6 +6,7 @@ on:
         required: false
         type: string
         default: main
+permissions: read-all|write-all
 jobs:
   release:
     name: Run release
