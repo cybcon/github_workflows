@@ -6,7 +6,8 @@ on:
         required: false
         type: string
         default: main
-permissions: read-all|write-all
+permissions:
+  content: write
 jobs:
   release:
     name: Run release
