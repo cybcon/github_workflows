@@ -22,6 +22,7 @@ jobs:
           pwd
           ls -al
           git status
+          git branch
           exit 1
     outputs:
       hooks: ${{ steps.hooks.outputs.hooks }}
