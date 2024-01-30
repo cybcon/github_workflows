@@ -59,7 +59,7 @@ jobs:
 
           # extract the delta
           # get the GITs default branch name
-          default_branch=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+          default_branch=${{ github.event.repository.default_branch }}
           echo "DEBUG: The repos default branch name is: ${default_branch}"
           # get the branch nam,e of the current branch we want to check
           pr_branch=$(git branch | grep '^*' | awk '{print $2}')
