@@ -65,7 +65,7 @@ jobs:
           pr_branch=${{ github.event.pull_request.head.ref }}
           echo "DEBUG: The current branch is: ${pr_branch}"
           # generate a uniq name for a temporary local branch
-          test_branch="pre-commit/${current_branch}"
+          test_branch="pre-commit/${pr_branch}"
           echo "DEBUG: Name of a temporary and local branch: ${test_branch}"
           # checkout the default (main) branch
           git checkout ${default_branch} || exit 1
