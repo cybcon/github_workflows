@@ -62,7 +62,7 @@ jobs:
           default_branch=${{ github.event.repository.default_branch }}
           echo "DEBUG: The repos default branch name is: ${default_branch}"
           # get the branch nam,e of the current branch we want to check
-          pr_branch=$(git branch | grep '^*' | awk '{print $2}')
+          pr_branch=${{ github.event.pull_request.head.ref }}
           echo "DEBUG: The current branch is: ${pr_branch}"
           # generate a uniq name for a temporary local branch
           test_branch="pre-commit/${current_branch}"
