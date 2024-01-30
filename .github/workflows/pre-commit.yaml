@@ -41,6 +41,7 @@ jobs:
           echo "github.event.pull_request.base.repo.name: ${{ github.event.pull_request.base.repo.name }}"
           echo "github.event.pull_request.base.repo.full_name: ${{ github.event.pull_request.base.repo.full_name }}"
           echo "github.event.pull_request.base.repo.clone_url: ${{ github.event.pull_request.base.repo.clone_url }}"
+          echo "GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}"
           echo "-----[GIT COMMANDS]------"
           git status
           git branch
@@ -90,6 +91,7 @@ jobs:
           . /home/runner/.asdf/asdf.sh
 
           # extract the delta
+          git_url=${{ github.event.pull_request.base.repo.clone_url }}
           # get the GITs default branch name
           default_branch=${{ github.event.repository.default_branch }}
           echo "DEBUG: The repos default branch name is: ${default_branch}"
@@ -99,6 +101,13 @@ jobs:
           # generate a uniq name for a temporary local branch
           test_branch="pre-commit/${pr_branch}"
           echo "DEBUG: Name of a temporary and local branch: ${test_branch}"
+
+
+
+
+
+
+
           # checkout the default (main) branch
           git checkout ${default_branch} || exit 1
           # validate that it has the actual state
