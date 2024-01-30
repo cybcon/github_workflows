@@ -70,7 +70,7 @@ jobs:
           echo "DEBUG: Name of a temporary and local branch: ${test_branch}"
 
           # Generate a new working direcory, based on the current GitHub workspace
-          BASEDIR=$(dirname ${GITHUB_LWORKSPACE})
+          BASEDIR=$(dirname ${GITHUB_WORKSPACE})
           WORKDIR="${BASEDIR}/pre-commit-test"
           mkdir -p ${WORKDIR} || exit 1
           cd ${WORKDIR} || exit 1
