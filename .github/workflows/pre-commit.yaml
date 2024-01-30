@@ -17,6 +17,12 @@ jobs:
       - name: Get hooks
         id: hooks
         run: echo "hooks=$(yq e '[.repos[].hooks[].id] | @json' .pre-commit-config.yaml)" >> $GITHUB_OUTPUT
+      - name: DEBUG
+        run: |
+          pwd
+          ls -al
+          git status
+          exit 1
     outputs:
       hooks: ${{ steps.hooks.outputs.hooks }}
   hook:
