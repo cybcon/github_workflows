@@ -1,13 +1,19 @@
 name: pre-commit
 on:
   workflow_call:
+    inputs:
+      full_precommit:
+        description: Defines whether a full pre-commit scan should be performed (cli option -a) or not
+        type: boolean
+        required: false
+        default: true
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Get hooks
         id: hooks
         run: echo "hooks=$(yq e '[.repos[].hooks[].id] | @json' .pre-commit-config.yaml)" >> $GITHUB_OUTPUT
@@ -15,7 +21,7 @@ jobs:
       hooks: ${{ steps.hooks.outputs.hooks }}
   hook:
     name: Run hook
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: setup
     strategy:
       matrix:
@@ -23,7 +29,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache asdf
         id: cache
         uses: actions/cache@v3
@@ -32,17 +38,72 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
       - name: Install
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v1.1.0
+        uses: asdf-vm/actions/install@v2.2.0
         with:
           # Normally, this action would just install the versions of the .tool-versions file in the root directory of the repository.
           # As we also have .tool-versions files in subdirectories, pre-commit hooks would fail if versions in these files differ from
           # the ones specified in the .tool-versions file in the root directory of this repository.
           before_install: find . -name ".tool-versions" -exec bash -c 'while read line; do asdf install ${line}; done < ${0}' {} \;
-      - name: Run ${{ matrix.hook }} hook
+      - name: Run ${{ matrix.hook }} hook (full repo scan)
+        if: inputs.full_precommit
         # The asdf setup is required when restoring from cache
         run: |
           . /home/runner/.asdf/asdf.sh
-           pre-commit run -a ${{ matrix.hook }}
+          pre-commit run -a ${{ matrix.hook }}
+      - name: Run ${{ matrix.hook }} hook (scan difference to default branch)
+        if: ${{ ! inputs.full_precommit }}
+        #
+        # The asdf setup is required when restoring from cache
+        run: |
+          . /home/runner/.asdf/asdf.sh
+
+          # extract the delta
+          # get the GITs default branch name
+          default_branch=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+          # get the branch nam,e of the current branch we want to check
+          pr_branch=$(git branch | grep '^*' | awk '{print $2}')
+          # generate a uniq name for a temporary local branch
+          test_branch="pre-commit/${current_branch}"
+          # checkout the default (main) branch
+          git checkout ${default_branch}
+          # validate that it has the actual state
+          git pull
+          # create a new, temporary branch locally
+          git checkout -b ${test_branch}
+          # merge the content from the branch we want to check
+          git merge --no-ff -m "get changes from PR branch" ${pr_branch}
+          # decrease HEAD revision for 1 version in past, so we have the file changes
+          git reset HEAD~1
+          # add the changes, so we get the differences into the commit
+          git add .
+
+          # validate if there are only removals inside the commit
+          removals_only='false'
+          if [ $(git status -s | awk '{print $1}' | sort | uniq | egrep -v 'D' | wc -l) -eq 0 ]; then
+            removals_only='true'
+          fi
+
+          # validate if the current matrix job is a checkov scan
+          is_checkov='false'
+          if [ ! -z "echo ${{ matrix.hook }} | grep -i checkov" ]; then
+            is_checkov='true'
+          fi
+
+          # if there are only removals, checkov will fail - we will skip all checkov checks on removals only
+          if [ "${is_checkov}" == "true" -a "${removals_only}" == "true" ]; then
+            echo "INFO: Skip pre-commit run ${{ matrix.hook }}, because there are only removal of files and checkov would fail here!"
+          else
+            pre-commit run ${{ matrix.hook }}
+            RC="${?}"
+          fi
+          # go back to the initial PR branch
+          git checkout ${pr_branch}
+          # remove the temporary branch
+          git branch -D ${test_branch}
+
+          # exit step with RC of the pre-commit run
+          exit ${RC}
+
       - name: Add summary on success
         if: ${{ success() }}
         run: |
