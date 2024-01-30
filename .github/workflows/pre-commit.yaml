@@ -22,12 +22,31 @@ jobs:
           pwd
           ls -al
           cat .git/config
+
+          echo "-----[GITHUB VARIABLES]------"
+          echo "github.event.repository.type: ${{ github.event.repository.type }}"
+          echo "github.event.repository.id: ${{ github.event.repository.id }}"
+          echo "github.event.repository.name: ${{ github.event.repository.name }}"
+          echo "github.event.repository.default_branch: ${{ github.event.repository.default_branch }}"
+          # https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28
+          echo "github.event.pull_request.action: ${{ github.event.pull_request.action }}"
+          echo "github.event.pull_request.number: ${{ github.event.pull_request.number }}"
+          echo "github.event.pull_request.state: ${{ github.event.pull_request.state }}"
+          echo "github.event.pull_request.head.ref: ${{ github.event.pull_request.head.ref }}"
+          echo "github.event.pull_request.head.sha: ${{ github.event.pull_request.head.sha }}"
+          echo "github.event.pull_request.head.repo.name: ${{ github.event.pull_request.head.repo.name }}"
+          echo "github.event.pull_request.head.repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
+          echo "github.event.pull_request.base.ref: ${{ github.event.pull_request.base.ref }}"
+          echo "github.event.pull_request.base.sha: ${{ github.event.pull_request.base.sha }}"
+          echo "github.event.pull_request.base.repo.name: ${{ github.event.pull_request.base.repo.name }}"
+          echo "github.event.pull_request.base.repo.full_name: ${{ github.event.pull_request.base.repo.full_name }}"
+          echo "-----[GIT COMMANDS]------"
           git status
           git branch
           git remote -v
           git pull
           git diff origin/main
-          echo "EXIT NOW WITH RC 1"
+          echo "-----[EXIT NOW WITH RC 1]-----"
           exit 1
     outputs:
       hooks: ${{ steps.hooks.outputs.hooks }}
