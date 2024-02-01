@@ -89,6 +89,10 @@ jobs:
           echo "DEBUG Do a soft reset to revision: ${revision}"
           git reset --soft ${revision}
 
+          # add the changes, so we get the differences into the commit
+          echo "DEBUG: Adding all changes to get the delta as pre-commit"
+          git add . || exit 1
+
           git status
           exit 1
 
@@ -96,17 +100,6 @@ jobs:
 
 
 
-          # create a new, temporary branch locally
-          echo "DEBUG: Create a local branch: ${test_branch}"
-          git checkout -b ${test_branch} || exit 1
-          # merge the content from the branch we want to check
-          echo "DEBUG: Merge changes from PR Branch: ${pr_branch}"
-          git merge --no-ff -m "get changes from PR branch" ${pr_branch} || exit 1
-          # decrease HEAD revision for 1 version in past, so we have the file changes
-          echo "DEBUG: reset HEAD revision"
-          git reset HEAD~1 || exit 1
-          # add the changes, so we get the differences into the commit
-          git add . || exit 1
 
           # validate if there are only removals inside the commit
           removals_only='false'
