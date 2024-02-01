@@ -69,6 +69,13 @@ jobs:
           test_branch="pre-commit/${pr_branch}"
           echo "DEBUG: Name of a temporary and local branch: ${test_branch}"
 
+          git reset HEAD~1 || exit 1
+          git status
+          exit 1
+
+
+
+
           # Generate a new working direcory, based on the current GitHub workspace
           BASEDIR=$(dirname ${GITHUB_WORKSPACE})
           WORKDIR="${BASEDIR}/pre-commit-test"
