@@ -90,6 +90,9 @@ jobs:
           # add the changes, so we get the differences into the commit
           echo "DEBUG: Adding all changes to stage the delta"
           git add . || exit 1
+          # output delta
+          echo "DEBUG: Delta is:"
+          git status -s || exit 1
 
           # validate if there are only removals inside the commit
           removals_only='false'
