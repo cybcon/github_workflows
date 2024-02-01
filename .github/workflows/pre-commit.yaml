@@ -65,18 +65,16 @@ jobs:
           # get the branch nam,e of the current branch we want to check
           pr_branch=${{ github.event.pull_request.head.ref }}
           echo "DEBUG: The current branch is: ${pr_branch}"
-          # generate a uniq name for a temporary local branch
-          test_branch="pre-commit/${pr_branch}"
-          echo "DEBUG: Name of a temporary and local branch: ${test_branch}"
 
           # Generate a new working direcory, based on the current GitHub workspace
           BASEDIR=$(dirname ${GITHUB_WORKSPACE})
           WORKDIR="${BASEDIR}/pre-commit-test"
           mkdir -p ${WORKDIR} || exit 1
           cd ${WORKDIR} || exit 1
+
           # cloning the GIT repository
           echo "DEBUG: Cloning ${{ github.event.pull_request.base.repo.clone_url }} in $(pwd)"
-          git clone ${{ github.event.pull_request.base.repo.clone_url }} .
+          git clone ${{ github.event.pull_request.base.repo.clone_url }} . || exit 1
           # get the revision of default branch
           echo "DEBUG: Get revision of the default branch"
           revision=$(git rev-parse origin/${default_branch})
@@ -84,16 +82,16 @@ jobs:
 
           # Switch to the PR branch
           echo "DEBUG: Switch to the pull request branch: ${pr_branch}"
-          git checkout ${pr_branch}
+          git checkout ${pr_branch} || exit 1
           # Reset the branch to default branch revision
           echo "DEBUG Do a soft reset to revision: ${revision}"
-          git reset --soft ${revision}
+          git reset --soft ${revision} || exit 1
 
           # add the changes, so we get the differences into the commit
-          echo "DEBUG: Adding all changes to get the delta as pre-commit"
+          echo "DEBUG: Adding all changes to stage the delta"
           git add . || exit 1
 
-          git status
+          git status -s
           exit 1
 
 
