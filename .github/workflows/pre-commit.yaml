@@ -91,7 +91,7 @@ jobs:
           echo "DEBUG: Adding all changes to stage the delta"
           git add . || exit 1
           # output delta
-          echo "DEBUG: Delta is:"
+          echo "DEBUG: Staged delta is:"
           git status -s || exit 1
 
           # validate if there are only removals inside the commit
