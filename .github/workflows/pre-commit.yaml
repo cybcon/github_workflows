@@ -100,7 +100,7 @@ jobs:
 
           # validate if the current matrix job is a checkov scan
           is_checkov='false'
-          if [ ! -z "echo ${{ matrix.hook }} | grep -i checkov" ]; then
+          if [ ! -z "$(echo ${{ matrix.hook }} | grep -i checkov)" ]; then
             is_checkov='true'
             echo "DEBUG: Detecting a checkov scan (${{ matrix.hook }})."
           fi
