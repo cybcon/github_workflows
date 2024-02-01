@@ -91,14 +91,6 @@ jobs:
           echo "DEBUG: Adding all changes to stage the delta"
           git add . || exit 1
 
-          git status -s
-          exit 1
-
-
-
-
-
-
           # validate if there are only removals inside the commit
           removals_only='false'
           if [ $(git status -s | awk '{print $1}' | sort | uniq | egrep -v 'D' | wc -l) -eq 0 ]; then
@@ -121,14 +113,10 @@ jobs:
             pre-commit run ${{ matrix.hook }}
             RC="${?}"
           fi
-          # go back to the initial PR branch
-          git checkout ${pr_branch}
-          # remove the temporary branch
-          git branch -D ${test_branch}
           # Go back to the GitHub workspace
-          cd ${GITHUB_LWORKSPACE}
+          cd ${GITHUB_WORKSPACE} || exit 1
           # remove the rtemporare workdir
-          rm -rf ${WORKDIR}
+          rm -rf ${WORKDIR} || exit 1
 
           # exit step with RC of the pre-commit run
           exit ${RC}
