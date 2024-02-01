@@ -81,8 +81,18 @@ jobs:
           echo "DEBUG: Get revision of the default branch"
           revision=$(git rev-parse origin/${default_branch})
           echo "DEBUG: Revision of origin/${default_branch} is: ${revision}"
+
+          # Switch to the PR branch
+          echo "DEBUG: Switch to the pull request branch: ${pr_branch}"
+          git checkout ${pr_branch}
+          # Reset the branch to default branch revision
+          echo "DEBUG Do a soft reset to revision: ${revision}"
+          git reset --soft ${revision}
+
           git status
           exit 1
+
+
 
 
 
@@ -90,7 +100,7 @@ jobs:
           echo "DEBUG: Create a local branch: ${test_branch}"
           git checkout -b ${test_branch} || exit 1
           # merge the content from the branch we want to check
-          echo "DEBUG: MErge changes from PR Branch: ${pr_branch}"
+          echo "DEBUG: Merge changes from PR Branch: ${pr_branch}"
           git merge --no-ff -m "get changes from PR branch" ${pr_branch} || exit 1
           # decrease HEAD revision for 1 version in past, so we have the file changes
           echo "DEBUG: reset HEAD revision"
