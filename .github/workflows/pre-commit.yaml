@@ -69,29 +69,31 @@ jobs:
           test_branch="pre-commit/${pr_branch}"
           echo "DEBUG: Name of a temporary and local branch: ${test_branch}"
 
-          git reset HEAD~1 || exit 1
-          git status
-          exit 1
-
-
-
-
           # Generate a new working direcory, based on the current GitHub workspace
           BASEDIR=$(dirname ${GITHUB_WORKSPACE})
           WORKDIR="${BASEDIR}/pre-commit-test"
           mkdir -p ${WORKDIR} || exit 1
           cd ${WORKDIR} || exit 1
           # cloning the GIT repository
+          echo "DEBUG: Cloning ${{ github.event.pull_request.base.repo.clone_url }} in $(pwd)"
           git clone ${{ github.event.pull_request.base.repo.clone_url }} .
-          # checkout the default (main) branch
-          git checkout ${default_branch} || exit 1
-          # validate that it has the actual state
-          git pull || exit 1
+          # get the revision of default branch
+          echo "DEBUG: Get revision of the default branch"
+          revision=$(git rev-parse origin/${default_branch})
+          echo "DEBUG: Revision of origin/${default_branch} is: ${revision}"
+          git status
+          exit 1
+
+
+
           # create a new, temporary branch locally
+          echo "DEBUG: Create a local branch: ${test_branch}"
           git checkout -b ${test_branch} || exit 1
           # merge the content from the branch we want to check
+          echo "DEBUG: MErge changes from PR Branch: ${pr_branch}"
           git merge --no-ff -m "get changes from PR branch" ${pr_branch} || exit 1
           # decrease HEAD revision for 1 version in past, so we have the file changes
+          echo "DEBUG: reset HEAD revision"
           git reset HEAD~1 || exit 1
           # add the changes, so we get the differences into the commit
           git add . || exit 1
