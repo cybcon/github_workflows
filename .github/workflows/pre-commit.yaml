@@ -58,48 +58,68 @@ jobs:
           . /home/runner/.asdf/asdf.sh
 
           # extract the delta
+          git_url=${{ github.event.pull_request.base.repo.clone_url }}
           # get the GITs default branch name
-          default_branch=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+          default_branch=${{ github.event.repository.default_branch }}
+          echo "DEBUG: The repos default branch name is: ${default_branch}"
           # get the branch nam,e of the current branch we want to check
-          pr_branch=$(git branch | grep '^*' | awk '{print $2}')
-          # generate a uniq name for a temporary local branch
-          test_branch="pre-commit/${current_branch}"
-          # checkout the default (main) branch
-          git checkout ${default_branch}
-          # validate that it has the actual state
-          git pull
-          # create a new, temporary branch locally
-          git checkout -b ${test_branch}
-          # merge the content from the branch we want to check
-          git merge --no-ff -m "get changes from PR branch" ${pr_branch}
-          # decrease HEAD revision for 1 version in past, so we have the file changes
-          git reset HEAD~1
+          pr_branch=${{ github.event.pull_request.head.ref }}
+          echo "DEBUG: The current branch is: ${pr_branch}"
+
+          # Generate a new working direcory, based on the current GitHub workspace
+          BASEDIR=$(dirname ${GITHUB_WORKSPACE})
+          WORKDIR="${BASEDIR}/pre-commit-test"
+          mkdir -p ${WORKDIR} || exit 1
+          cd ${WORKDIR} || exit 1
+
+          # cloning the GIT repository
+          echo "DEBUG: Cloning ${{ github.event.pull_request.base.repo.clone_url }} in $(pwd)"
+          git clone ${{ github.event.pull_request.base.repo.clone_url }} . || exit 1
+          # get the revision of default branch
+          echo "DEBUG: Get revision of the default branch"
+          revision=$(git rev-parse origin/${default_branch})
+          echo "DEBUG: Revision of origin/${default_branch} is: ${revision}"
+
+          # Switch to the PR branch
+          echo "DEBUG: Switch to the pull request branch: ${pr_branch}"
+          git checkout ${pr_branch} || exit 1
+          # Reset the branch to default branch revision
+          echo "DEBUG Do a soft reset to revision: ${revision}"
+          git reset --soft ${revision} || exit 1
+
           # add the changes, so we get the differences into the commit
-          git add .
+          echo "DEBUG: Adding all changes to stage the delta"
+          git add . || exit 1
+          # output delta
+          echo "DEBUG: Staged delta is:"
+          git status -s || exit 1
 
           # validate if there are only removals inside the commit
           removals_only='false'
           if [ $(git status -s | awk '{print $1}' | sort | uniq | egrep -v 'D' | wc -l) -eq 0 ]; then
             removals_only='true'
+            echo "DEBUG: This branch contains only removals of files."
           fi
 
           # validate if the current matrix job is a checkov scan
           is_checkov='false'
-          if [ ! -z "echo ${{ matrix.hook }} | grep -i checkov" ]; then
+          if [ ! -z "$(echo ${{ matrix.hook }} | grep -i checkov)" ]; then
             is_checkov='true'
+            echo "DEBUG: Detecting a checkov scan (${{ matrix.hook }})."
           fi
 
           # if there are only removals, checkov will fail - we will skip all checkov checks on removals only
           if [ "${is_checkov}" == "true" -a "${removals_only}" == "true" ]; then
             echo "INFO: Skip pre-commit run ${{ matrix.hook }}, because there are only removal of files and checkov would fail here!"
+            RC=0
           else
             pre-commit run ${{ matrix.hook }}
             RC="${?}"
           fi
-          # go back to the initial PR branch
-          git checkout ${pr_branch}
-          # remove the temporary branch
-          git branch -D ${test_branch}
+          # Go back to the GitHub workspace
+          cd ${GITHUB_WORKSPACE} || exit 1
+          # remove the rtemporare workdir
+          rm -rf ${WORKDIR} || exit 1
 
           # exit step with RC of the pre-commit run
           exit ${RC}
