@@ -24,11 +24,11 @@ jobs:
       ) &&
       !contains(github.event.pull_request.labels.*.name, 'chore')
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: install semver
-        uses: asdf-vm/actions/install@v2.2.0
+        uses: asdf-vm/actions/install@v3
         with:
           tool_versions: |
             semver 3.3.0
