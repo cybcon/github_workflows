@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
       - name: determine labels
         id: determine_release_labels
         shell: python
