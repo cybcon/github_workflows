@@ -31,7 +31,7 @@ jobs:
         uses: asdf-vm/actions/install@v3
         with:
           tool_versions: |
-            semver 3.3.0
+            semver 3.4.0
       - name: Determine release type
         id: release_type
         run: |

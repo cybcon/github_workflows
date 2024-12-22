@@ -10,7 +10,7 @@ on:
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,7 +21,7 @@ jobs:
       hooks: ${{ steps.hooks.outputs.hooks }}
   hook:
     name: Run hook
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs: setup
     strategy:
       matrix:
