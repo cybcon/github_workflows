@@ -48,7 +48,7 @@ jobs:
         if: inputs.full_precommit
         # The asdf setup is required when restoring from cache
         run: |
-          . /home/runner/.asdf/asdf.sh
+          #. /home/runner/.asdf/asdf.sh
           pre-commit run -a ${{ matrix.hook }}
       - name: Run ${{ matrix.hook }} hook (scan difference to default branch)
         if: ${{ ! inputs.full_precommit }}
@@ -62,7 +62,7 @@ jobs:
           # get the branch name of the current branch we want to check
           pr_branch: ${{ github.event.pull_request.head.ref }}
         run: |
-          . /home/runner/.asdf/asdf.sh
+          #. /home/runner/.asdf/asdf.sh
 
           echo "DEBUG: The repos default branch name is: ${default_branch}"
           echo "DEBUG: The current branch is: ${pr_branch}"
