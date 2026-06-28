@@ -93,6 +93,7 @@ jobs:
 
           # validate if there are only removals inside the commit
           removals_only='false'
+          # shellcheck disable=SC2046
           if [ $(git status -s | awk '{print $1}' | sort | uniq | grep -E -c -v 'D') -eq 0 ]; then
             removals_only='true'
             echo "DEBUG: This branch contains only removals of files."
