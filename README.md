@@ -17,7 +17,7 @@ on:
   push:
 jobs:
   pre-commit:
-    uses: cybcon/github_workflows/pre-commit.yaml@v2.0.0
+    uses: cybcon/github_workflows/pre-commit.yaml@v2.1.0
 ```
 
 ## release
@@ -47,7 +47,7 @@ on:
       - closed
 jobs:
   release:
-    uses: cybcon/github_workflows/.github/workflows/release-from-label.yaml@v2.0.0
+    uses: cybcon/github_workflows/.github/workflows/release-from-label.yaml@v2.1.0
 ```
 
 ```yaml
@@ -63,7 +63,7 @@ on:
       - unlabeled
 jobs:
   release-label-validation:
-    uses: cybcon/github_workflows/.github/workflows/release-label-validation.yaml@v2.0.0
+    uses: cybcon/github_workflows/.github/workflows/release-label-validation.yaml@v2.1.0
 ```
 
 ## Container image vulnerability scan
@@ -82,7 +82,6 @@ The workflow will take following inputs:
 | `trivy_tag`               | `string`  | Use a special aquasec/trivy container image tag.                                        | no       | `latest`      |
 | `DOCKERHUB_USERNAME`      | `string`  | The username to login to Docker Registry. (**SECRET**)                                  | no       |               |
 | `DOCKERHUB_PASSWORD`      | `string`  | The password to login to Docker Registry. (**SECRET**)                                  | no       |               |
-
 
 ### Examples
 
@@ -116,13 +115,38 @@ jobs:
   scan:
     name: Container vulnerability scan
     needs: container-build
-    uses: cybcon/github_workflows/.github/workflows/container-vulnerability-scan.yaml@v2
+    uses: cybcon/github_workflows/.github/workflows/container-vulnerability-scan.yaml@v2.1.0
     with:
       image_name: container-build:test
       image_artifact_name: container-build
       image_artifact_filename: container.tar
       login_dockerhub: false
       trivy_tag: latest
+```
+
+## Container image build validation
+
+The [container-image-build-validation](./.github/workflows/container-image-build-validation.yaml) workflow tests a docker build and afterwards it triggers the **Container image vulnerability scan** workflow (see above).
+
+The workflow will take following inputs:
+
+| Name                      | Type      | Description                                                                             | Required | Default value              |
+|---------------------------|-----------|-----------------------------------------------------------------------------------------|----------|----------------------------|
+| `context`                 | `string`  | The context/location where to find the file Dockerfile.                                 | no       | `.`                        |
+| `platforms`               | `string`  | The supported plattforms, used for docker build.                                        | no       | `linux/amd64, linux/arm64` |
+| `login_dockerhub`         | `boolean` | Login to DockerHub, requires the secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD`. | no       | `false`                    |
+| `trivy_tag`               | `string`  | Use a special aquasec/trivy container image tag.                                        | no       | `latest`                   |
+| `DOCKERHUB_USERNAME`      | `string`  | The username to login to Docker Registry. (**SECRET**)                                  | no       |                            |
+| `DOCKERHUB_PASSWORD`      | `string`  | The password to login to Docker Registry. (**SECRET**)                                  | no       |                            |
+
+### Examples
+
+Build a container image, upload it to the pipeline artifacts and trigger the vulnerability scan.
+
+```yaml
+jobs:
+  container-image-build-validation:
+    uses: cybcon/github_workflows/.github/workflows/container-image-build-validation.yaml@v2.1.0
 ```
 
 ## Donate

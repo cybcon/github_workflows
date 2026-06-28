@@ -1,0 +1,74 @@
+name: container-image-build-validation
+on:
+  workflow_call:
+    inputs:
+      context:
+        type: string
+        description: "The context/location where to find the file Dockerfile."
+        required: false
+        default: "."
+      platforms:
+        type: string
+        description: "The supported plattforms, used for docker build."
+        required: false
+        default: "linux/amd64, linux/arm64"
+      login_dockerhub:
+        type: boolean
+        description: "Login to DockerHub, requires the secrets DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD (default: false)"
+        required: false
+        default: false
+      trivy_tag:
+        type: string
+        description: "Use a special aquasec/trivy container image tag (default: latest)"
+        required: false
+        default: latest
+    secrets:
+      DOCKERHUB_USERNAME:
+        description: "The username to login to Docker Registry."
+        required: false
+      DOCKERHUB_PASSWORD:
+        description: "The password to login to Docker Registry."
+        required: false
+
+jobs:
+  container-build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GIT repository
+        uses: actions/checkout@v7
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Test build
+        uses: docker/build-push-action@v7
+        with:
+          push: false
+          load: false
+          context: ${{ inputs.context }}
+          platforms: ${{ inputs.platforms }}
+          tags: container-build:test
+      - name: Test build and export for further validation
+        uses: docker/build-push-action@v7
+        with:
+          push: false
+          load: true
+          context: ${{ inputs.context }}
+          tags: container-build:test
+          outputs: type=docker,dest=/tmp/container.tar
+      - name: Upload container image as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: container-build
+          path: /tmp/container.tar
+  scan:
+    name: Container vulnerability scan
+    needs: container-build
+    uses: ./.github/workflows/container-vulnerability-scan.yaml
+    with:
+      image_name: container-build:test
+      image_artifact_filename: container.tar
+      image_artifact_name: container-build
+      login_dockerhub: ${{ inputs.login_dockerhub }}
+      trivy_tag: ${{ inputs.trivy_tag }}
