@@ -3,4 +3,4 @@ on:
   push:
 jobs:
   pre-commit:
-    uses: ./pre-commit.yaml
+    uses: ./.github/workflows/pre-commit.yaml

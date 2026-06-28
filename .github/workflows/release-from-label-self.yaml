@@ -5,4 +5,4 @@ on:
       - closed
 jobs:
   release:
-    uses: ./release-from-label.yaml
+    uses: ./.github/workflows/release-from-label.yaml

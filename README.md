@@ -4,7 +4,7 @@ This repo contains reusable GitHub Action workflows and configuration.
 
 ## pre-commit
 
-The [pre-commit](./github/workflows/pre-commit.yaml) workflow creates matrix jobs for every pre-commit hook.
+The [pre-commit](./.github/workflows/pre-commit.yaml) workflow creates matrix jobs for every pre-commit hook.
 The matrix jobs fail if the hook fails and/or if there is a diff after running the hook.
 
 This action requires a `.pre-commit-config.yaml` file that contains the hooks as well as a `.tool-versions` file that contains (at least) the version of pre-commit to be installed.
@@ -26,8 +26,8 @@ The release workflows provide a pull-request label based release process.
 A release is created when a pull request is merged to the `main` or `master` branch.
 The release version type (major, minor or patch) is determined by a corresponding release label.
 
-The [release-label-validation](./release-label-validation.yaml) workflow ensures that a pull request cannot be merged before an appropriate label is set.
-The [release-from-label](./release-from-label.yaml) workflow is responsible for creating the actual release after merge.
+The [release-label-validation](./.github/workflows/release-label-validation.yaml) workflow ensures that a pull request cannot be merged before an appropriate label is set.
+The [release-from-label](./.github/workflows/release-from-label.yaml) workflow is responsible for creating the actual release after merge.
 
 Possible release labels are
 - `major` - Release a major version
@@ -47,7 +47,7 @@ on:
       - closed
 jobs:
   release:
-    uses: cybcon/github_workflows/release-from-label.yaml@v2.0.0
+    uses: cybcon/github_workflows/.github/workflows/release-from-label.yaml@v2.0.0
 ```
 
 ```yaml
@@ -63,7 +63,66 @@ on:
       - unlabeled
 jobs:
   release-label-validation:
-    uses: cybcon/github_workflows/release-label-validation.yaml@v2.0.0
+    uses: cybcon/github_workflows/.github/workflows/release-label-validation.yaml@v2.0.0
+```
+
+## Container image vulnerability scan
+
+The [container-vulnerability-scan](./.github/workflows/container-vulnerability-scan.yaml) workflows scans a given container image and scans it with the latest version of [Aquasec Trivy](https://www.aquasec.com/products/trivy/).
+The scan report will be send to `GITHUB_STEP_SUMMARY`.
+
+The workflow will take following inputs:
+
+| Name                      | Type      | Description                                                                             | Required | Default value |
+|---------------------------|-----------|-----------------------------------------------------------------------------------------|----------|---------------|
+| `image_name`              | `string`  | Container image name and tag to scan.                                                   | **yes**  |               |
+| `image_artifact_name`     | `string`  | Container image artifact name to identify the container image file from artifacts.      | no       |               |
+| `image_artifact_filename` | `string`  | Container image file that needs to be downloaded from artifacts.                        | no       |               |
+| `login_dockerhub`         | `boolean` | Login to DockerHub, requires the secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD`. | no       | `false`       |
+| `trivy_tag`               | `string`  | Use a special aquasec/trivy container image tag.                                        | no       | `latest`      |
+| `DOCKERHUB_USERNAME`      | `string`  | The username to login to Docker Registry. (**SECRET**)                                  | no       |               |
+| `DOCKERHUB_PASSWORD`      | `string`  | The password to login to Docker Registry. (**SECRET**)                                  | no       |               |
+
+
+### Examples
+
+Build a container image, upload it to the pipeline artifacts and trigger the vulnerability scan.
+
+```yaml
+jobs:
+  container-build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GIT repository
+        uses: actions/checkout@v7
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Test build and export for further validation
+        uses: docker/build-push-action@v7
+        with:
+          push: false
+          load: true
+          context: .
+          tags: container-build:test
+          outputs: type=docker,dest=/tmp/container.tar
+      - name: Upload container image as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: container-build
+          path: /tmp/container.tar
+  scan:
+    name: Container vulnerability scan
+    needs: container-build
+    uses: cybcon/github_workflows/.github/workflows/container-vulnerability-scan.yaml@v2
+    with:
+      image_name: container-build:test
+      image_artifact_name: container-build
+      image_artifact_filename: container.tar
+      login_dockerhub: false
+      trivy_tag: latest
 ```
 
 ## Donate
