@@ -47,16 +47,14 @@ jobs:
       - name: Run ${{ matrix.hook }} hook (full repo scan)
         if: inputs.full_precommit
         # The asdf setup is required when restoring from cache
-        env:
-          PATH: "${HOME}/.asdf/shims:${PATH}"
         run: |
+          asdf install
           pre-commit run -a ${{ matrix.hook }}
       - name: Run ${{ matrix.hook }} hook (scan difference to default branch)
         if: ${{ ! inputs.full_precommit }}
         #
         # The asdf setup is required when restoring from cache
         env:
-          PATH: "${HOME}/.asdf/shims:${PATH}"
           # extract the delta
           git_url: ${{ github.event.pull_request.base.repo.clone_url }}
           # get the GITs default branch name
@@ -64,6 +62,8 @@ jobs:
           # get the branch name of the current branch we want to check
           pr_branch: ${{ github.event.pull_request.head.ref }}
         run: |
+          asdf install
+
           echo "DEBUG: The repos default branch name is: ${default_branch}"
           echo "DEBUG: The current branch is: ${pr_branch}"
 
