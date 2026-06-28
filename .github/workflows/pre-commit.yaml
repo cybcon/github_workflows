@@ -36,14 +36,13 @@ jobs:
         with:
           path: /home/runner/.asdf
           key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
-      - name: Install
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v4
-        with:
-          # Normally, this action would just install the versions of the .tool-versions file in the root directory of the repository.
-          # As we also have .tool-versions files in subdirectories, pre-commit hooks would fail if versions in these files differ from
-          # the ones specified in the .tool-versions file in the root directory of this repository.
-          before_install: find . -name ".tool-versions" -exec bash -c 'while read line; do asdf install ${line}; done < ${0}' {} \;
+      #- name: Install
+      #  if: steps.cache.outputs.cache-hit != 'true'
+      #  uses: asdf-vm/actions/install@v4
+      #  with:
+      #    # Normally, this action would just install the versions of the .tool-versions file in the root directory of the repository.
+      #    # When .tool-versions files used in subdirectories, this scrpt will also install them.
+      #    before_install: find . -name ".tool-versions" -exec bash -c 'while read line; do asdf install ${line}; done < ${0}' {} \;
       - name: Run ${{ matrix.hook }} hook (full repo scan)
         if: inputs.full_precommit
         # The asdf setup is required when restoring from cache
