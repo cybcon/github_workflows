@@ -20,9 +20,9 @@ jobs:
       contains(fromJSON('["opened", "edited", "synchronize", "reopened", "labeled", "unlabeled"]'), github.event.action) &&
       !startsWith(github.head_ref, 'renovate/')
     steps:
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: 3.14
       - name: determine labels
         id: determine_release_labels
         shell: python
@@ -47,14 +47,14 @@ jobs:
       - name: fail on empty labels
         if: ${{ steps.determine_release_labels.outputs.labels_are_valid != 'True' && steps.determine_release_labels.outputs.release_labels_count == 0 }}
         run: |
-          echo "### :x: a release label (major, minor, patch or chore) must be set" >> $GITHUB_STEP_SUMMARY
+          echo "### :x: a release label (major, minor, patch or chore) must be set" >> "${GITHUB_STEP_SUMMARY}"
           exit 1
       - name: fail on multiple labels
         if: ${{ steps.determine_release_labels.outputs.labels_are_valid != 'True' && steps.determine_release_labels.outputs.release_labels_count > 1 }}
         run: |
-          echo "### :x: pr must either be marked as chore or contain exactly one release label (major, minor, patch) " >> $GITHUB_STEP_SUMMARY
+          echo "### :x: pr must either be marked as chore or contain exactly one release label (major, minor, patch) " >> "${GITHUB_STEP_SUMMARY}"
           exit 1
       - name: report correct label
         if: steps.determine_release_labels.outputs.labels_are_valid
         run: |
-          echo "### :white_check_mark: pr is marked with valid label" >> $GITHUB_STEP_SUMMARY
+          echo "### :white_check_mark: pr is marked with valid label" >> "${GITHUB_STEP_SUMMARY}"
