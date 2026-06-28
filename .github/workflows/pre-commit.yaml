@@ -93,14 +93,14 @@ jobs:
 
           # validate if there are only removals inside the commit
           removals_only='false'
-          if [ $(git status -s | awk '{print $1}' | sort | uniq | grep -E -v 'D' | wc -l) -eq 0 ]; then
+          if [ $(git status -s | awk '{print $1}' | sort | uniq | grep -E -c -v 'D') -eq 0 ]; then
             removals_only='true'
             echo "DEBUG: This branch contains only removals of files."
           fi
 
           # validate if the current matrix job is a checkov scan
           is_checkov='false'
-          if [ -n "$(echo ${{ matrix.hook }} | grep -i checkov)" ]; then
+          if echo "${{ matrix.hook }}" | grep -q checkov; then
             is_checkov='true'
             echo "DEBUG: Detecting a checkov scan (${{ matrix.hook }})."
           fi
