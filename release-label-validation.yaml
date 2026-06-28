@@ -20,9 +20,9 @@ jobs:
       contains(fromJSON('["opened", "edited", "synchronize", "reopened", "labeled", "unlabeled"]'), github.event.action) &&
       !startsWith(github.head_ref, 'renovate/')
     steps:
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: 3.14
       - name: determine labels
         id: determine_release_labels
         shell: python

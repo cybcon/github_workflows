@@ -10,4 +10,4 @@ on:
       - unlabeled
 jobs:
   release-label-validation:
-    uses: ./.github/workflows/release-label-validation.yaml
+    uses: ./release-label-validation.yaml

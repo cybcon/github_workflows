@@ -17,7 +17,7 @@ on:
   push:
 jobs:
   pre-commit:
-    uses: cybcon/github_workflows/.github/workflows/pre-commit.yaml@v1.0.0
+    uses: cybcon/github_workflows/pre-commit.yaml@v2.0.0
 ```
 
 ## release
@@ -26,8 +26,8 @@ The release workflows provide a pull-request label based release process.
 A release is created when a pull request is merged to the `main` or `master` branch.
 The release version type (major, minor or patch) is determined by a corresponding release label.
 
-The [release-label-validation](./github/workflows/release-label-validation.yaml) workflow ensures that a pull request cannot be merged before an appropriate label is set.
-The [release-from-label](./github/workflows/release-from-label.yaml) workflow is responsible for creating the actual release after merge.
+The [release-label-validation](./release-label-validation.yaml) workflow ensures that a pull request cannot be merged before an appropriate label is set.
+The [release-from-label](./release-from-label.yaml) workflow is responsible for creating the actual release after merge.
 
 Possible release labels are
 - `major` - Release a major version
@@ -47,7 +47,7 @@ on:
       - closed
 jobs:
   release:
-    uses: cybcon/github_workflows/.github/workflows/release-from-label.yaml@v1.0.0
+    uses: cybcon/github_workflows/release-from-label.yaml@v2.0.0
 ```
 
 ```yaml
@@ -63,5 +63,37 @@ on:
       - unlabeled
 jobs:
   release-label-validation:
-    uses: cybcon/github_workflows/.github/workflows/release-label-validation.yaml@v1.0.0
+    uses: cybcon/github_workflows/release-label-validation.yaml@v2.0.0
 ```
+
+## Donate
+
+I would appreciate a small donation to support the further development of my open source projects.
+
+[![Donate with PayPal][donate-paypal-button]][donate-paypal-link]
+
+## License
+
+Copyright (c) 2023-2026 Michael Oberdorf IT-Consulting
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+<!-- LINK GROUP -->
+[donate-paypal-button]: https://raw.githubusercontent.com/cybcon/paypal-donate-button/refs/heads/master/paypal-donate-button_200x77.png
+[donate-paypal-link]: https://www.paypal.com/donate/?hosted_button_id=BHGJGGUS6RH44

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Get hooks
         id: hooks
         run: echo "hooks=$(yq e '[.repos[].hooks[].id] | @json' .pre-commit-config.yaml)" >> $GITHUB_OUTPUT
@@ -29,16 +29,16 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Cache asdf
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: /home/runner/.asdf
           key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
       - name: Install
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v3
+        uses: asdf-vm/actions/install@v4
         with:
           # Normally, this action would just install the versions of the .tool-versions file in the root directory of the repository.
           # As we also have .tool-versions files in subdirectories, pre-commit hooks would fail if versions in these files differ from
@@ -54,16 +54,17 @@ jobs:
         if: ${{ ! inputs.full_precommit }}
         #
         # The asdf setup is required when restoring from cache
+        env:
+          # extract the delta
+          git_url: ${{ github.event.pull_request.base.repo.clone_url }}
+          # get the GITs default branch name
+          default_branch: ${{ github.event.repository.default_branch }}
+          # get the branch name of the current branch we want to check
+          pr_branch: ${{ github.event.pull_request.head.ref }}
         run: |
           . /home/runner/.asdf/asdf.sh
 
-          # extract the delta
-          git_url=${{ github.event.pull_request.base.repo.clone_url }}
-          # get the GITs default branch name
-          default_branch=${{ github.event.repository.default_branch }}
           echo "DEBUG: The repos default branch name is: ${default_branch}"
-          # get the branch nam,e of the current branch we want to check
-          pr_branch=${{ github.event.pull_request.head.ref }}
           echo "DEBUG: The current branch is: ${pr_branch}"
 
           # Generate a new working direcory, based on the current GitHub workspace
