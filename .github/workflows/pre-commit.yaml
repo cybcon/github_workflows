@@ -37,7 +37,7 @@ jobs:
           path: /home/runner/.asdf
           key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
       - name: Install
-        #if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: asdf-vm/actions/install@v4
         with:
           # Normally, this action would just install the versions of the .tool-versions file in the root directory of the repository.
