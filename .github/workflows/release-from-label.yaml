@@ -56,7 +56,7 @@ jobs:
           release_type=${{ steps.release_type.outputs.release_type }}
           echo "Performing $release_type release!"
 
-          next_version="$(semver bump $release_type $version)"
+          next_version=$(semver bump "${release_type}" "${version}")
           echo "Next version is $next_version"
           echo "version=$next_version" >> "${GITHUB_OUTPUT}"
       - name: Create release
