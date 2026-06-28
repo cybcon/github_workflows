@@ -36,13 +36,13 @@ jobs:
         id: release_type
         run: |
           if [[ ${{ contains(github.event.pull_request.labels.*.name, 'major') }} == "true" ]]; then
-            echo "release_type=major" >> $GITHUB_OUTPUT
+            echo "release_type=major" >> "${GITHUB_OUTPUT}"
           elif [[ ${{ contains(github.event.pull_request.labels.*.name, 'minor') }} == "true" ]]; then
-            echo "release_type=minor" >> $GITHUB_OUTPUT
+            echo "release_type=minor" >> "${GITHUB_OUTPUT}"
           elif [[ ${{ contains(github.event.pull_request.labels.*.name, 'patch') }} == "true" ]]; then
-            echo "release_type=patch" >> $GITHUB_OUTPUT
+            echo "release_type=patch" >> "${GITHUB_OUTPUT}"
           else
-            echo "### :x: Failed to determine release type from PR labels" >> $GITHUB_STEP_SUMMARY
+            echo "### :x: Failed to determine release type from PR labels" >> "${GITHUB_STEP_SUMMARY}"
             exit 1
           fi
       - name: Determine next version
@@ -56,16 +56,16 @@ jobs:
           release_type=${{ steps.release_type.outputs.release_type }}
           echo "Performing $release_type release!"
 
-          next_version=$(semver bump $release_type $version)
+          next_version="$(semver bump $release_type $version)"
           echo "Next version is $next_version"
-          echo "version=$next_version" >> $GITHUB_OUTPUT
+          echo "version=$next_version" >> "${GITHUB_OUTPUT}"
       - name: Create release
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'pre-release') }}
         run: |
           GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh release create "v${{ steps.next_version.outputs.version }}" --generate-notes
-          echo "#### :rocket: Released version v${{ steps.next_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "#### :rocket: Released version v${{ steps.next_version.outputs.version }}" >> "${GITHUB_STEP_SUMMARY}"
       - name: Create pre-release
         if: ${{ contains(github.event.pull_request.labels.*.name, 'pre-release') }}
         run: |
           GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh release create "v${{ steps.next_version.outputs.version }}" --generate-notes --prerelease
-          echo "### :rocket: Pre-released version v${{ steps.next_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "### :rocket: Pre-released version v${{ steps.next_version.outputs.version }}" >> "${GITHUB_STEP_SUMMARY}"
